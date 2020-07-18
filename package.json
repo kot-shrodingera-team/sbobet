@@ -1,5 +1,6 @@
 {
   "devDependencies": {
-    "@kot-shrodingera-team/config": "^1.0.0"
+    "@kot-shrodingera-team/config": "^1.0.28",
+    "rollup-plugin-prettier": "^2.1.0"
   }
 }

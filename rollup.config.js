@@ -1,10 +1,12 @@
-import config from './node_modules/@kot-shrodingera-team/config/rollup.config';
+import typescript from '@rollup/plugin-typescript';
+import prettier from 'rollup-plugin-prettier';
 import bookmakerName from './bookmakerName';
 
 export default {
-  ...config,
   input: './src/index.ts',
   output: {
+    format: 'es',
     file: `./dist/${bookmakerName}.js`,
   },
+  plugins: [typescript(), prettier()],
 };
