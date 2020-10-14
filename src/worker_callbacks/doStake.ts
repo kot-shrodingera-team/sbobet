@@ -4,6 +4,21 @@ import {
 } from './checkCouponLoading';
 
 const doStake = (): boolean => {
+  const selectAllCheckBox = document.querySelector('#selectAll')  as HTMLInputElement;
+  if (!selectAllCheckBox) {
+    worker.Helper.WriteLine('Не найден чекбокс всех ставок');
+    return false;
+  }
+  if (selectAllCheckBox.disabled) {
+    worker.Helper.WriteLine(
+      'Чекбокс всех ставок недоступен. Скорее всего ставка недоступна'
+    );
+    return false;
+  }
+  if (!selectAllCheckBox.checked) {
+    selectAllCheckBox.checked = true;
+    worker.Helper.WriteLine('Переключили чекбокс всех ставок');
+  }
   const betCheckbox = document.querySelector('#bsChk_0') as HTMLInputElement;
   if (!betCheckbox) {
     worker.Helper.WriteLine('Не найден чекбокс ставки');
@@ -16,8 +31,8 @@ const doStake = (): boolean => {
     return false;
   }
   if (!betCheckbox.checked) {
-    betCheckbox.checked = true;
-    worker.Helper.WriteLine('Переключили чекбокс ставки');
+    worker.Helper.WriteLine('Чекбокс ставки выключен. Ставку не делаем');
+    return false;
   }
   const errorMessage = document.querySelector('.Err');
   if (errorMessage) {
