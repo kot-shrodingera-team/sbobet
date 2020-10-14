@@ -5,11 +5,12 @@ const findBet = async (): Promise<HTMLElement> => {
   const marketName = betData[0];
   const betName = betData[1];
   const parameter = betData[2];
+  worker.Helper.WriteLine('Ищем маркет');
   const marketHeader = await awaiter(() => {
     return [...document.querySelectorAll('.MarketHd')].find((marketElement) => {
       return marketElement.textContent === marketName;
     });
-  });
+  }, 10000);
   if (!marketHeader) {
     worker.Helper.WriteLine(
       `Не найден подходящий заголовок маркета: "${marketName}"`
