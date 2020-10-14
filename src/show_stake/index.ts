@@ -7,7 +7,14 @@ import getStakeCount from '../stake_info/getStakeCount';
 import { updateBalance, refreshBalance } from '../stake_info/getBalance';
 
 const showStake = async (): Promise<void> => {
-  await authCheckReady();
+  await Promise.race([getElement('#distilCaptchaForm'), authCheckReady()]);
+  if (document.querySelector('#distilCaptchaForm')) {
+    worker.Helper.WriteLine('Появилась капча');
+    worker.Helper.SendInformedMessage('В сбобет появилась капча');
+    worker.JSFail();
+    return;
+  }
+
   worker.Islogin = checkAuth();
   worker.JSLogined();
   if (!worker.Islogin) {
