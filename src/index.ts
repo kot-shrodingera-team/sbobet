@@ -31,7 +31,7 @@ const fastLoad = (): void => {
     return;
   }
   const url = worker.EventUrl.replace(
-    'http://www.sbobet.com',
+    /^https?:\/\/(www\.)?sbobet\.com/,
     // `https://${prefix}.sbobet.com`
     // eslint-disable-next-line prefer-template
     'https://' + prefix + '.sbobet.com'
