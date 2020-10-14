@@ -24,7 +24,7 @@ const checkCouponLoading = (): boolean => {
     worker.Helper.WriteLine('Обработка ставки завершена (ошибка ставки)');
     return false;
   }
-  const betReference = document.querySelector('.RefNo');
+  const betReference = document.querySelector('#bet-slip-content .RefNo');
   if (betReference) {
     const betReferenceText = betReference.textContent.trim();
     const betReferenceRegex = /^Bet Ref (\d+) - (.*)$/;
