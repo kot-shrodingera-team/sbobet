@@ -1,7 +1,9 @@
+import { log } from '@kot-shrodingera-team/germes-utils';
+
 const getParameter = (): number => {
   const betInfo = document.querySelector('.BetInfo');
   if (!betInfo) {
-    worker.Helper.WriteLine('Не найдена информация о ставке');
+    log('Не найдена информация о ставке', 'crimson');
     return -9999;
   }
   const marketName = betInfo.childNodes[0].textContent.trim();
@@ -13,8 +15,9 @@ const getParameter = (): number => {
   const parameterRegex = /^.*:([-+]?\d+(?:\.\d+)?)(?: @ (\d+) - (\d+))?$/;
   const parameterMatch = marketName.match(parameterRegex);
   if (!parameterMatch) {
-    worker.Helper.WriteLine(
-      `Не удалось определить параметр из маркета: "${marketName}"`
+    log(
+      `Не удалось определить параметр из маркета: "${marketName}"`,
+      'crimson'
     );
     return -9999;
   }
@@ -22,10 +25,10 @@ const getParameter = (): number => {
   const leftScore = parameterMatch[2];
   const rightScore = parameterMatch[3];
   if (leftScore && rightScore) {
-    worker.Helper.WriteLine('Расчёт параметра от форы');
+    log('Расчёт параметра от форы', 'steelblue');
     const teamNamesElement = document.querySelector('.Event label');
     if (!teamNamesElement) {
-      worker.Helper.WriteLine('Не найдены названия команд в заголовке купона');
+      log('Не найдены названия команд в заголовке купона', 'crimson');
       return -9999;
     }
     const teamNamesRegex = /^(.*) -vs- (.*)$/;
@@ -33,8 +36,9 @@ const getParameter = (): number => {
       .trim()
       .match(teamNamesRegex);
     if (!teamNamesMatch) {
-      worker.Helper.WriteLine(
-        `Не удалось получить названия команд из заголовка купона: "${teamNamesElement.textContent}"`
+      log(
+        `Не удалось получить названия команд из заголовка купона: "${teamNamesElement.textContent}"`,
+        'crimson'
       );
       return -9999;
     }
@@ -44,25 +48,25 @@ const getParameter = (): number => {
       .querySelector('.BetInfo strong')
       .childNodes[0].textContent.trim();
     if (!betNameText) {
-      worker.Helper.WriteLine('Не найдена вторая часть росписи ставки');
+      log('Не найдена вторая часть росписи ставки', 'crimson');
       return -9999;
     }
     const betNameRegex = /^(.*)@/;
     const betNameMatch = betNameText.match(betNameRegex);
     if (!betNameMatch) {
-      worker.Helper.WriteLine(
-        `Не удалось получить название команды из второй части росписи ставки: "${betNameText}"`
+      log(
+        `Не удалось получить название команды из второй части росписи ставки: "${betNameText}"`,
+        'crimson'
       );
       return -9999;
     }
     const teamName = betNameMatch[1].trim();
     if (![leftTeamName, rightTeamName].includes(teamName)) {
-      worker.Helper.WriteLine(
-        'Название команды из второй части росписи ставки не найдено в заголовке купона'
+      log(
+        'Название команды из второй части росписи ставки не найдено в заголовке купона',
+        'crimson'
       );
-      worker.Helper.WriteLine(
-        `${teamName} ? [${leftTeamName}, ${rightTeamName}]`
-      );
+      log(`${teamName} ? [${leftTeamName}, ${rightTeamName}]`, 'crimson');
       return -9999;
     }
     const scoreOffset =

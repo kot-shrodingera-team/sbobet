@@ -1,22 +1,23 @@
-import { fireEvent } from '@kot-shrodingera-team/config/util';
+import setStakeSumGenerator from '@kot-shrodingera-team/germes-generators/worker_callbacks/setStakeSum';
+import { log } from '@kot-shrodingera-team/germes-utils';
 
-const setStakeSum = (sum: number): boolean => {
-  worker.Helper.WriteLine(`Вводим сумму ставки: ${sum}`);
+const preInputCheck = (sum: number): boolean => {
   if (!Number.isInteger(sum)) {
-    worker.Helper.WriteLine(
-      'В БК Сбобет допускаются только целые суммы ставок. Измените округление в настройках БК'
+    log(
+      'В БК Сбобет допускаются только целые суммы ставок. Измените округление в настройках БК',
+      'crimson'
     );
     return false;
   }
-  const inputElement = document.querySelector('#stk_0') as HTMLInputElement;
-  if (!inputElement) {
-    worker.Helper.WriteLine('Поле ввода ставки не найдено');
-    return false;
-  }
-  inputElement.value = String(sum);
-  fireEvent(inputElement, 'keyup');
-  worker.StakeInfo.Summ = sum;
   return true;
 };
+
+const setStakeSum = setStakeSumGenerator({
+  sumInputSelector: '#stk_0',
+  alreadySetCheck: true,
+  inputType: 'fireEvent',
+  fireEventName: 'keyup',
+  preInputCheck,
+});
 
 export default setStakeSum;

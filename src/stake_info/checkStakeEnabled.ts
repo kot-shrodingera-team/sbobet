@@ -1,49 +1,43 @@
-const checkStakeEnabled = (): boolean => {
-  const betslipInvalid = document.querySelector('.BetSlip.Invalid');
-  if (betslipInvalid) {
-    worker.Helper.WriteLine('Ставка заблокирована');
-    return false;
-  }
-  // const selectAllCheckBox = document.querySelector(
-  //   '#selectAll'
-  // ) as HTMLInputElement;
-  // if (!selectAllCheckBox) {
-  //   worker.Helper.WriteLine('Не найден чекбокс всех ставок');
-  //   return false;
-  // }
-  // if (selectAllCheckBox.disabled) {
-  //   worker.Helper.WriteLine(
-  //     'Чекбокс всех ставок недоступен. Скорее всего ставка недоступна'
-  //   );
-  //   return false;
-  // }
-  // if (!selectAllCheckBox.checked) {
-  //   selectAllCheckBox.checked = true;
-  //   worker.Helper.WriteLine('Переключили чекбокс всех ставок');
-  // } else {
-  //   selectAllCheckBox.checked = false;
-  //   selectAllCheckBox.checked = true;
-  //   worker.Helper.WriteLine('Дважды переключили чекбокс всех ставок');
-  // }
+import checkStakeEnabledGenerator from '@kot-shrodingera-team/germes-generators/stake_info/checkStakeEnabled';
+import { log } from '@kot-shrodingera-team/germes-utils';
+import getStakeCount from './getStakeCount';
+
+const preCheck = (): boolean => {
   const betCheckbox = document.querySelector('#bsChk_0') as HTMLInputElement;
   if (!betCheckbox) {
-    worker.Helper.WriteLine('Не найден чекбокс ставки');
+    log('Не найден чекбокс ставки', 'crimson');
     return false;
   }
   if (betCheckbox.disabled) {
-    worker.Helper.WriteLine(
-      'Чекбокс ставки недоступен. Скорее всего ставка недоступна'
-    );
+    log('Чекбокс ставки недоступен. Скорее всего ставка недоступна', 'crimson');
     return false;
   }
   if (!betCheckbox.checked) {
     betCheckbox.checked = true;
-    worker.Helper.WriteLine(
-      'Переключили чекбокс ставки. Всё ещё счиаем её недоступной'
-    );
+    log('Переключили чекбокс ставки. Всё ещё счиаем её недоступной', 'crimson');
     return false;
   }
   return true;
 };
+
+const checkStakeEnabled = checkStakeEnabledGenerator({
+  preCheck,
+  getStakeCount,
+  // betCheck: {
+  //   selector: '',
+  //   errorClasses: [
+  //     {
+  //       className: '',
+  //       message: '',
+  //     },
+  //   ],
+  // },
+  errorsCheck: [
+    {
+      selector: '.BetSlip.Invalid',
+      message: 'заблокирована',
+    },
+  ],
+});
 
 export default checkStakeEnabled;

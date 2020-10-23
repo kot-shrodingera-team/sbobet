@@ -1,71 +1,69 @@
-import { getElement, awaiter } from '@kot-shrodingera-team/config/util';
-import authCheckReady from '../initialization/authCheckReady';
-import checkAuth from '../stake_info/checkAuth';
+import { getElement, checkUrl, log } from '@kot-shrodingera-team/germes-utils';
+import checkAuth, { authStateReady } from '../stake_info/checkAuth';
 import clearCoupon from './clearCoupon';
-import findBet from './findBet';
-import getStakeCount from '../stake_info/getStakeCount';
 import { updateBalance, refreshBalance } from '../stake_info/getBalance';
+import JsFailError from './errors/jsFailError';
+import NewUrlError from './errors/newUrlError';
+import openBet from './openBet';
+import openEvent from './openEvent';
+import preCheck from './preCheck';
+
+let couponOpenning = false;
+
+export const isCouponOpenning = (): boolean => couponOpenning;
 
 const showStake = async (): Promise<void> => {
-  await Promise.race([getElement('#distilCaptchaForm'), authCheckReady()]);
-  if (document.querySelector('#distilCaptchaForm')) {
-    worker.Helper.WriteLine('Появилась капча');
-    worker.Helper.SendInformedMessage('В сбобет появилась капча');
-    worker.JSFail();
-    return;
-  }
+  localStorage.setItem('couponOpening', '1');
+  couponOpenning = true;
 
-  worker.Islogin = checkAuth();
-  worker.JSLogined();
-  if (!worker.Islogin) {
-    worker.Helper.WriteLine('Нет авторизации');
-    worker.JSFail();
-    return;
-  }
-  (getElement('[id="bu:od:go:mt:4"]') as Promise<HTMLElement>).then(
-    (allMarketButton) => {
-      if (!allMarketButton) {
-        worker.Helper.WriteLine('Не найдена кнопка выбора всех маркетов');
-        return;
-      }
-      if ([...allMarketButton.classList].includes('0')) {
-        worker.Helper.WriteLine(
-          'Не выбраны все маркеты события. Нажимаем кнопку All'
-        );
-        allMarketButton.click();
-      } else {
-        worker.Helper.WriteLine('Уже выбраны все маркеты события');
-      }
+  try {
+    if (!checkUrl()) {
+      log('Открыта не страница конторы (или зеркала)', 'crimson');
+      window.location.href = new URL(worker.BookmakerMainUrl).href;
+      throw new NewUrlError('Открывает страницу БК');
     }
-  );
-  const betButton = await findBet();
-  updateBalance();
-  refreshBalance();
-  if (!betButton) {
-    worker.JSFail();
-    return;
+
+    await Promise.race([getElement('#distilCaptchaForm'), authStateReady()]);
+    if (document.querySelector('#distilCaptchaForm')) {
+      worker.Helper.SendInformedMessage('В Sbobet появилась капча');
+      throw new JsFailError('Появилась капча');
+    }
+    worker.Islogin = checkAuth();
+    worker.JSLogined();
+    if (!worker.Islogin) {
+      throw new JsFailError('Нет авторизации');
+    }
+    log('Есть авторизация', 'steelblue');
+
+    const couponCleared = await clearCoupon();
+    if (!couponCleared) {
+      throw new JsFailError('Не удалось очистить купон');
+    }
+    updateBalance();
+    refreshBalance();
+
+    await preCheck();
+
+    await openEvent();
+
+    await openBet();
+
+    log('Ставка успешно открыта', 'green');
+
+    couponOpenning = false;
+    localStorage.setItem('couponOpening', '0');
+    worker.JSStop();
+  } catch (error) {
+    if (error instanceof JsFailError) {
+      log(error.message, 'red');
+      couponOpenning = false;
+      localStorage.setItem('couponOpening', '0');
+      worker.JSFail();
+    }
+    if (error instanceof NewUrlError) {
+      log(error.message, 'orange');
+    }
   }
-  const parentTr = betButton.parentElement.parentElement;
-  if (parentTr && [...parentTr.classList].includes('OddsClosed')) {
-    worker.Helper.WriteLine('Ставка недоступна');
-    worker.JSFail();
-    return;
-  }
-  const couponCleared = await clearCoupon();
-  if (!couponCleared) {
-    worker.JSFail();
-    return;
-  }
-  worker.Helper.WriteLine('Нажимаем на ставку');
-  betButton.click();
-  const betAdded = await awaiter(() => getStakeCount() === 1);
-  if (!betAdded) {
-    worker.Helper.WriteLine('Ставка не попала в купон');
-    worker.JSFail();
-    return;
-  }
-  worker.Helper.WriteLine('Ставка успешно открыта');
-  worker.JSStop();
 };
 
 export default showStake;

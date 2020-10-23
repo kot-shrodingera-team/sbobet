@@ -1,32 +1,27 @@
-import { awaiter } from '@kot-shrodingera-team/config/util';
+import { awaiter, log } from '@kot-shrodingera-team/germes-utils';
+import JsFailError from './errors/jsFailError';
 
 const findBet = async (): Promise<HTMLElement> => {
-  const betData = worker.BetId.split('|');
-  const marketName = betData[0];
-  const betName = betData[1];
-  const parameter = betData[2];
-  worker.Helper.WriteLine('Ищем маркет');
+  const [marketName, betName, parameter] = worker.BetId.split('|');
+  log('Ищем маркет', 'steelblue');
   const marketHeader = await awaiter(() => {
     return [...document.querySelectorAll('.MarketHd')].find((marketElement) => {
       return marketElement.textContent === marketName;
     });
   }, 10000);
   if (!marketHeader) {
-    worker.Helper.WriteLine(
+    throw new JsFailError(
       `Не найден подходящий заголовок маркета: "${marketName}"`
     );
-    return null;
   }
-  worker.Helper.WriteLine(`Маркет найден: "${marketName}"`);
-  const market = marketHeader.nextSibling;
+  log(`Маркет найден: "${marketName}"`, 'steelblue');
+  const market = marketHeader.nextSibling as HTMLElement;
   if (!market) {
-    worker.Helper.WriteLine('Не найден маркет под заголовком');
-    return null;
+    throw new JsFailError('Не найден маркет под заголовком');
   }
   const oddsButtons = [...market.querySelectorAll('.OddsTabL, .OddsTabR')];
   if (oddsButtons.length === 0) {
-    worker.Helper.WriteLine('Не найден ни одной ставке в маркете');
-    return null;
+    throw new JsFailError('Не найдено ни одной ставки в маркете');
   }
   const betButton = oddsButtons.find((button) => {
     const betButtonNameElement = button.querySelector('.OddsL');
@@ -42,18 +37,21 @@ const findBet = async (): Promise<HTMLElement> => {
       betButtonName === betName &&
       Number(betButtonParameter) === Number(parameter)
     );
-  });
+  }) as HTMLElement;
   if (!betButton) {
-    worker.Helper.WriteLine(
+    throw new JsFailError(
       `Не найдена ставка "${betName}"${
         Number.isNaN(Number(parameter))
           ? ''
           : ` (${parameter}). Возможно ставка уже недоступна`
       }`
     );
-    return null;
   }
-  worker.Helper.WriteLine('Ставка найдена');
+  const parentTr = betButton.parentElement.parentElement;
+  if (parentTr && [...parentTr.classList].includes('OddsClosed')) {
+    throw new JsFailError('Ставка недоступна');
+  }
+  log('Ставка найдена', 'steelblue');
   return betButton;
 };
 

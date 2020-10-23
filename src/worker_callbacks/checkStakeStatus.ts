@@ -1,11 +1,12 @@
-import { toFormData } from '@kot-shrodingera-team/config/util';
+import { log, toFormData } from '@kot-shrodingera-team/germes-utils';
 import { updateBalance, refreshBalance } from '../stake_info/getBalance';
 
 const checkStakeStatus = (): boolean => {
   const errorMessage = document.querySelector('.Err');
   if (errorMessage) {
-    worker.Helper.WriteLine(
-      `Ставка не принята. Ошибка: "${errorMessage.textContent.trim()}"`
+    log(
+      `Ставка не принята. Ошибка: "${errorMessage.textContent.trim()}"`,
+      'tomato'
     );
     return false;
   }
@@ -16,23 +17,20 @@ const checkStakeStatus = (): boolean => {
     const betReferenceRegex = /^Bet Ref (\d+) - (.*)$/;
     const betReferenceMatch = betReferenceText.match(betReferenceRegex);
     if (!betReferenceMatch) {
-      worker.Helper.WriteLine(
-        `Не удалось определить результат ставки из купона: "${betReferenceText}"`
+      log(
+        `Не удалось определить результат ставки из купона: "${betReferenceText}". Считаем ставку непринятой`,
+        'tomato'
       );
       return false;
     }
     const betReferenceNumber = betReferenceMatch[1];
     const betResult = betReferenceMatch[2];
     if (betResult === 'Rejected') {
-      worker.Helper.WriteLine(
-        `Ставка не принята (${betResult}) (${betReferenceNumber})`
-      );
+      log(`Ставка не принята (${betResult}) (${betReferenceNumber})`, 'tomato');
       return false;
     }
     if (['Accepted', 'Waiting'].includes(betResult)) {
-      worker.Helper.WriteLine(
-        `Ставка принята (${betResult}) (${betReferenceNumber})`
-      );
+      log(`Ставка принята (${betResult}) (${betReferenceNumber})`, 'green');
       const bodyData = toFormData({
         bot_api: worker.ApiKey,
         fork_id: worker.ForkId,
@@ -46,15 +44,14 @@ const checkStakeStatus = (): boolean => {
       refreshBalance();
       return true;
     }
-    worker.Helper.WriteLine(
-      `Неизвестный результат ставки: "${betResult}". Считаем ставку непринятой`
+    log(
+      `Неизвестный результат ставки: "${betResult}". Считаем ставку непринятой`,
+      'tomato'
     );
     return false;
   }
 
-  worker.Helper.WriteLine(
-    'Не найден результат ставки. Считаем ставку не принятой'
-  );
+  log('Не найден результат ставки. Считаем ставку не принятой', 'tomato');
   return false;
 };
 

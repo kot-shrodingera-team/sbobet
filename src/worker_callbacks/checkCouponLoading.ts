@@ -1,27 +1,11 @@
-let loadingCounter = 0;
-let stakeProcessingHungMessageSend = false;
+import checkCouponLoadingGenerator from '@kot-shrodingera-team/germes-generators/worker_callbacks/checkCouponLoading';
+import { log } from '@kot-shrodingera-team/germes-utils';
+import { getDoStakeTime } from '../stake_info/doStakeTime';
 
-export const clearLoadingCounter = (): void => {
-  loadingCounter = 0;
-};
-export const clearStakeProcessingHungMessageSend = (): void => {
-  stakeProcessingHungMessageSend = false;
-};
-
-const checkCouponLoading = (): boolean => {
-  if (!stakeProcessingHungMessageSend && loadingCounter > 200) {
-    const message =
-      `В Sbobet очень долгое принятие ставки. Возможно зависание\n` +
-      `Событие: ${worker.TeamOne} - ${worker.TeamTwo}\n` +
-      `Ставка: ${worker.BetName}\n` +
-      `Сумма: ${worker.StakeInfo.Summ}\n`;
-    worker.Helper.SendInformedMessage(message);
-    worker.Helper.WriteLine('Очень долгое принятие ставки. Возможно зависание');
-    stakeProcessingHungMessageSend = true;
-  }
+const check = () => {
   const errorMessage = document.querySelector('.Err');
   if (errorMessage) {
-    worker.Helper.WriteLine('Обработка ставки завершена (ошибка ставки)');
+    log('Обработка ставки завершена (ошибка ставки)', 'orange');
     return false;
   }
   const betReference = document.querySelector('#bet-slip-content .RefNo');
@@ -29,18 +13,24 @@ const checkCouponLoading = (): boolean => {
     const betReferenceText = betReference.textContent.trim();
     const betReferenceRegex = /^Bet Ref (\d+) - (.*)$/;
     if (betReferenceRegex.test(betReferenceText)) {
-      worker.Helper.WriteLine('Обработка ставки завершена (успешная ставка)');
+      log('Обработка ставки завершена (успешная ставка)', 'orange');
       return false;
     }
-    worker.Helper.WriteLine(
-      `Обработка ставки (есть Bet Ref, но нет результата - "${betReferenceText}")`
+    log(
+      `Обработка ставки (есть Bet Ref, но нет результата - "${betReferenceText}")`,
+      'tan'
     );
     return true;
   }
-
-  loadingCounter += 1;
-  worker.Helper.WriteLine('Обработка ставки');
+  log('Обработка ставки', 'tan');
   return true;
 };
+
+const checkCouponLoading = checkCouponLoadingGenerator({
+  getDoStakeTime,
+  bookmakerName: '',
+  timeout: 60000,
+  check,
+});
 
 export default checkCouponLoading;
