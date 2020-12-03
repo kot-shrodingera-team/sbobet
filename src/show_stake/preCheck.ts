@@ -3,7 +3,8 @@ import JsFailError from './errors/jsFailError';
 import NewUrlError from './errors/newUrlError';
 
 const preCheck = async (): Promise<void> => {
-  const prefix = window.localStorage.getItem('SbobetPrefix');
+  // const prefix = window.localStorage.getItem('SbobetPrefix');
+  const prefix = worker.GetSessionData('SbobetPrefix');
   if (!prefix) {
     throw new JsFailError(
       'Не найден поддомен. Невозможно сформировать корректный URL'
