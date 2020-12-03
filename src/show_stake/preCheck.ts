@@ -10,17 +10,17 @@ const preCheck = async (): Promise<void> => {
       'Не найден поддомен. Невозможно сформировать корректный URL'
     );
   }
+  if (window.location.href.includes(worker.EventId)) {
+    log('Открыта страница нужного события', 'steelblue');
+    return;
+  }
+  log('Открыта не страница нужного события', 'steelblue');
   const url = new URL(worker.EventUrl).href.replace(
     /^https?:\/\/(www\.)?sbobet\.com/,
     // `https://${prefix}.sbobet.com`
     // eslint-disable-next-line prefer-template
     'https://' + prefix + '.sbobet.com'
   );
-  if (window.location.href === url) {
-    log('Открыта страница нужного события', 'steelblue');
-    return;
-  }
-  log('Открыта не страница нужного события', 'steelblue');
   window.location.href = url;
   throw new NewUrlError('Переходим на страницу события');
 };
