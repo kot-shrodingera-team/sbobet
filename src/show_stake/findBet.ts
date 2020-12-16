@@ -1,20 +1,42 @@
-import { awaiter, log } from '@kot-shrodingera-team/germes-utils';
+import { awaiter, getElement, log } from '@kot-shrodingera-team/germes-utils';
 import JsFailError from './errors/jsFailError';
 
 const findBet = async (): Promise<HTMLElement> => {
   const [marketName, betName, parameter] = worker.BetId.split('|');
-  log('Ищем маркет', 'steelblue');
+  log(`Ищем маркет ${marketName}`, 'steelblue');
+  getElement('#panel-live-court').then(async (liveCourt) => {
+    if (!liveCourt) {
+      return;
+    }
+    log('Появился Live Court', 'steelblue');
+    const tornamentButton = document.querySelector(
+      '.Sel[id^="ms-live-to"] a'
+    ) as HTMLElement;
+    if (!tornamentButton) {
+      log('Не найдена кнопка турнира', 'crimson');
+      return;
+    }
+    log('Переходим на страницу турнира', 'orange');
+    tornamentButton.click();
+    const eventButton = (await getElement(
+      `.IconMarkets[href*="${new URL(worker.EventUrl).pathname}"]`
+    )) as HTMLElement;
+    if (!eventButton) {
+      log('Не найдена кнопка события', 'crimson');
+      return;
+    }
+    log('Переходим на страницу события', 'orange');
+    eventButton.click();
+  });
   const marketHeader = await awaiter(() => {
     return [...document.querySelectorAll('.MarketHd')].find((marketElement) => {
       return marketElement.textContent === marketName;
     });
   }, 10000);
   if (!marketHeader) {
-    throw new JsFailError(
-      `Не найден подходящий заголовок маркета: "${marketName}"`
-    );
+    throw new JsFailError('Маркет не найден');
   }
-  log(`Маркет найден: "${marketName}"`, 'steelblue');
+  log('Маркет найден', 'steelblue');
   const market = marketHeader.nextSibling as HTMLElement;
   if (!market) {
     throw new JsFailError('Не найден маркет под заголовком');
