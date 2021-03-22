@@ -3,18 +3,16 @@ import JsFailError from './errors/jsFailError';
 
 const findBet = async (): Promise<HTMLElement> => {
   const [marketName, betName, parameter] = worker.BetId.split('|');
-  log('Ищем маркет', 'steelblue');
+  log(`Ищем маркет ${marketName}`, 'steelblue');
   const marketHeader = await awaiter(() => {
     return [...document.querySelectorAll('.MarketHd')].find((marketElement) => {
       return marketElement.textContent === marketName;
     });
   }, 10000);
   if (!marketHeader) {
-    throw new JsFailError(
-      `Не найден подходящий заголовок маркета: "${marketName}"`
-    );
+    throw new JsFailError('Маркет не найден');
   }
-  log(`Маркет найден: "${marketName}"`, 'steelblue');
+  log('Маркет найден', 'steelblue');
   const market = marketHeader.nextSibling as HTMLElement;
   if (!market) {
     throw new JsFailError('Не найден маркет под заголовком');
