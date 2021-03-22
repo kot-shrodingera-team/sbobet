@@ -19,6 +19,27 @@ const openBet = async (): Promise<void> => {
     }
   );
 
+  // Проверка формата коэффициентов
+  const priceStyle = document.querySelector('#tb-price-style');
+  if (!priceStyle) {
+    throw new JsFailError('Не найден текущий формат коэффициентов');
+  }
+  if (!priceStyle.classList.contains('odds-type-4')) {
+    log('Выбран не десятичный формат коэффициентов', 'steelblue');
+    const decCoefficientButton = document.querySelector<HTMLElement>(
+      '[onclick="javascript:$M(\'od\').onPriceStyle(4);"]'
+    );
+    if (!decCoefficientButton) {
+      throw new JsFailError(
+        'Не найдена кнопка переключенния на десятичный формат коэффициентов'
+      );
+    }
+    log('Переключаем не десятичный формат коэффициентов', 'orange');
+    decCoefficientButton.click();
+  } else {
+    log('Выбран десятичный формат коэффициентов', 'steelblue');
+  }
+
   const bet = await findBet();
 
   const maxTryCount = 5;
