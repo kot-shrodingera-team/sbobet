@@ -4,23 +4,8 @@ import JsFailError from './errors/jsFailError';
 import findBet from './findBet';
 
 const openBet = async (): Promise<void> => {
-  (getElement('[id="bu:od:go:mt:4"]') as Promise<HTMLElement>).then(
-    (allMarketButton) => {
-      if (!allMarketButton) {
-        // log('Не найдена кнопка выбора всех маркетов', 'crimson');
-        return;
-      }
-      if ([...allMarketButton.classList].includes('0')) {
-        log('Не выбраны все маркеты события. Нажимаем кнопку All', 'orange');
-        allMarketButton.click();
-      } else {
-        log('Уже выбраны все маркеты события', 'steelblue');
-      }
-    }
-  );
-
   // Проверка формата коэффициентов
-  const priceStyle = document.querySelector('#tb-price-style');
+  const priceStyle = await getElement('#tb-price-style', 10000);
   if (!priceStyle) {
     throw new JsFailError('Не найден текущий формат коэффициентов');
   }
