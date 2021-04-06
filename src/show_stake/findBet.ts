@@ -38,18 +38,16 @@ const findBet = async (): Promise<HTMLElement> => {
     if (!eventButton) {
       throw new JsFailError('Не найдена кнопка события');
     }
-    log('Переходим на страницу события', 'orange');
+    log('Возвращаемся на страницу события', 'orange');
     eventButton.click();
-    await Promise.any([
-      getElement(allMarketsButtonSelector, 10000),
-      awaiter(findMarketCallback, 10000, 50),
-    ]);
+    await awaiter(findMarketCallback, 10000, 50);
   }
 
   const allMarketsButton = document.querySelector(
     allMarketsButtonSelector
   ) as HTMLElement;
-  if (allMarketsButton) {
+  const marketHeader = findMarketCallback();
+  if (!marketHeader && allMarketsButton) {
     if ([...allMarketsButton.classList].includes('0')) {
       log('Не выбраны все маркеты события. Нажимаем кнопку All', 'orange');
       allMarketsButton.click();
@@ -59,19 +57,15 @@ const findBet = async (): Promise<HTMLElement> => {
     await awaiter(findMarketCallback, 10000, 50);
   }
 
-  const marketHeader = findMarketCallback();
-  (window as any).marketHeader = marketHeader;
   if (!marketHeader) {
     throw new JsFailError('Маркет не найден');
   }
   log('Маркет найден', 'steelblue');
   const market = marketHeader.nextSibling as HTMLElement;
-  (window as any).market = market;
   if (!market) {
     throw new JsFailError('Не найден маркет под заголовком');
   }
   const oddsButtons = [...market.querySelectorAll('.OddsTabL, .OddsTabR')];
-  (window as any).oddsButtons = oddsButtons;
   if (oddsButtons.length === 0) {
     throw new JsFailError('Не найдено ни одной ставки в маркете');
   }
@@ -103,7 +97,6 @@ const findBet = async (): Promise<HTMLElement> => {
       Number(betButtonParameter) === Number(parameter)
     );
   }) as HTMLElement;
-  (window as any).betButton = betButton;
   if (!betButton) {
     throw new JsFailError('Ставка не найдена');
   }
