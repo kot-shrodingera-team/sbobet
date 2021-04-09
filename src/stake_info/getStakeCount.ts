@@ -3,7 +3,8 @@ import getStakeCountGenerator from '@kot-shrodingera-team/germes-generators/stak
 // id добавлен, чтобы не определяло купоны с результатом
 
 const getStakeCount = getStakeCountGenerator({
-  stakeElementSelector: '#bet-slip-content .BetSlip[id]',
+  stakeSelector: '#bet-slip-content .BetSlip[id]',
+  // context: () => document,
 });
 
 export default getStakeCount;

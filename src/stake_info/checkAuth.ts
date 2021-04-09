@@ -2,15 +2,19 @@ import checkAuthGenerator, {
   authStateReadyGenerator,
 } from '@kot-shrodingera-team/germes-generators/stake_info/checkAuth';
 
+export const noAuthElementSelector = '#username';
+export const authElementSelector = '#login-name';
+
 export const authStateReady = authStateReadyGenerator({
-  noAuthElementSelector: '#username',
-  authElementSelector: '#login-name',
+  noAuthElementSelector,
+  authElementSelector,
   maxDelayAfterNoAuthElementAppeared: 3000,
-  logging: true,
+  // context: () => document,
 });
 
 const checkAuth = checkAuthGenerator({
-  authElementSelector: '#login-name',
+  authElementSelector,
+  // context: () => document,
 });
 
 export default checkAuth;

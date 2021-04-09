@@ -2,16 +2,32 @@ import {
   balanceReadyGenerator,
   getBalanceGenerator,
 } from '@kot-shrodingera-team/germes-generators/stake_info/getBalance';
-import { getElement } from '@kot-shrodingera-team/germes-utils';
+import { getElement, log } from '@kot-shrodingera-team/germes-utils';
+
+export const balanceSelector = '#bet-credit';
+// const balanceRegex = /(\d+(?:\.\d+)?)/;
+// const replaceDataArray = [
+//   {
+//     searchValue: '',
+//     replaceValue: '',
+//   },
+// ];
+// const removeRegex = /[\s,']/g;
 
 export const balanceReady = balanceReadyGenerator({
-  balanceSelector: '#bet-credit',
-  // balanceRegex: null,
+  balanceSelector,
+  // balanceRegex,
+  // replaceDataArray,
+  // removeRegex,
+  // context: () => document,
 });
 
 const getBalance = getBalanceGenerator({
-  balanceSelector: '#bet-credit',
-  // balanceRegex: null,
+  balanceSelector,
+  // balanceRegex,
+  // replaceDataArray,
+  // removeRegex,
+  // context: () => document,
 });
 
 export const updateBalance = (): void => {
@@ -19,14 +35,19 @@ export const updateBalance = (): void => {
 };
 
 export const refreshBalance = async (): Promise<void> => {
-  const refreshBalanceButton = document.querySelector(
+  const refreshBalanceButton = document.querySelector<HTMLElement>(
     '#bet-credit-refresh'
-  ) as HTMLElement;
-  if (refreshBalanceButton) {
-    refreshBalanceButton.click();
-    await getElement('#bet-credit-refresh.balance-refresh');
-    updateBalance();
+  );
+  if (!refreshBalanceButton) {
+    log('Не найдена кнопка обновления баланса', 'crimson');
+    return;
   }
+  refreshBalanceButton.click();
+  const refreshed = await getElement('#bet-credit-refresh.balance-refresh');
+  if (!refreshed) {
+    log('не дождались окончания обновления баланса', 'crimson');
+  }
+  updateBalance();
 };
 
 export default getBalance;

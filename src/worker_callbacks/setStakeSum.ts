@@ -1,5 +1,6 @@
 import setStakeSumGenerator from '@kot-shrodingera-team/germes-generators/worker_callbacks/setStakeSum';
 import { log } from '@kot-shrodingera-team/germes-utils';
+import { sumInputSelector } from '../stake_info/getCurrentSum';
 
 const preInputCheck = (sum: number): boolean => {
   if (!Number.isInteger(sum)) {
@@ -13,11 +14,14 @@ const preInputCheck = (sum: number): boolean => {
 };
 
 const setStakeSum = setStakeSumGenerator({
-  sumInputSelector: '#stk_0',
-  alreadySetCheck: true,
-  inputType: 'fireEvent',
-  fireEventName: 'keyup',
+  sumInputSelector,
+  alreadySetCheck: {
+    falseOnSumChange: false,
+  },
   preInputCheck,
+  inputType: 'fireEvent',
+  fireEventNames: ['keyup'],
+  context: () => document,
 });
 
 export default setStakeSum;

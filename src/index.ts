@@ -6,9 +6,9 @@ import doStake from './worker_callbacks/doStake';
 import checkCouponLoading from './worker_callbacks/checkCouponLoading';
 import checkStakeStatus from './worker_callbacks/checkStakeStatus';
 import afterSuccesfulStake from './worker_callbacks/afterSuccesfulStake';
+import fastLoad from './fastLoad';
 import initialize from './initialization';
 import showStake from './show_stake';
-import fastLoad from './fastLoad';
 
 worker.SetCallBacks(
   log,

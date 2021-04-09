@@ -1,7 +1,11 @@
-import { awaiter, getElement, log } from '@kot-shrodingera-team/germes-utils';
+import {
+  getElement,
+  log,
+  repeatingOpenBet,
+} from '@kot-shrodingera-team/germes-utils';
+import { JsFailError } from '@kot-shrodingera-team/germes-utils/errors';
 import getStakeCount from '../stake_info/getStakeCount';
-import JsFailError from './errors/jsFailError';
-import findBet from './findBet';
+import findBet from './helpers/findBet';
 
 const openBet = async (): Promise<void> => {
   // Проверка формата коэффициентов
@@ -25,24 +29,32 @@ const openBet = async (): Promise<void> => {
     log('Выбран десятичный формат коэффициентов', 'steelblue');
   }
 
+  // Поиск ставки
   const bet = await findBet();
 
-  const maxTryCount = 5;
-  for (let i = 1; i <= maxTryCount; i += 1) {
+  // Открытие ставки, проверка, что ставка попала в купон
+  const openingAction = async () => {
     bet.click();
-    // eslint-disable-next-line no-await-in-loop
-    const betAdded = await awaiter(() => getStakeCount() === 1, 1000, 50);
+  };
+  await repeatingOpenBet(openingAction, getStakeCount, 5, 1000, 50);
 
-    if (!betAdded) {
-      if (i === maxTryCount) {
-        throw new JsFailError('Ставка так и не попала в купон');
-      }
-      log(`Ставка не попала в купон (попытка ${i})`, 'steelblue');
-    } else {
-      log('Ставка попала в купон', 'steelblue');
-      break;
-    }
+  const eventNameSelector = '.Event label';
+  const betInfoSelector = '.BetInfo';
+
+  const eventNameElement = document.querySelector(eventNameSelector);
+  const betInfoElement = document.querySelector(betInfoSelector);
+
+  if (!eventNameElement) {
+    throw new JsFailError('Не найдено событие открытой ставки');
   }
+  if (!betInfoElement) {
+    throw new JsFailError('Не найдена информация о ставке');
+  }
+
+  const eventName = eventNameElement.textContent.trim();
+  const betInfo = betInfoElement.textContent.trim().replace(/ +/g, ' ');
+
+  log(`Открыта ставка\n${eventName}\n${betInfo}`, 'steelblue');
 };
 
 export default openBet;

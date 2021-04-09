@@ -19,8 +19,17 @@ const getCoefficientText = (): string => {
 };
 
 const getCoefficient = getCoefficientGenerator({
-  getCoefficientText,
   coefficientSelector: '',
+  getCoefficientText,
+  // replaceDataArray: [
+  //   {
+  //     searchValue: '',
+  //     replaceValue: '',
+  //   },
+  // ],
+  // removeRegex: /[\s,']/g,
+  // coefficientRegex: /(\d+(?:\.\d+)?)/,
+  // context: () => document,
 });
 
 export default getCoefficient;

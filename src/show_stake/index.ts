@@ -1,67 +1,53 @@
-import { getElement, checkUrl, log } from '@kot-shrodingera-team/germes-utils';
-import checkAuth, { authStateReady } from '../stake_info/checkAuth';
-import clearCoupon from './clearCoupon';
-import { updateBalance, refreshBalance } from '../stake_info/getBalance';
-import JsFailError from './errors/jsFailError';
-import NewUrlError from './errors/newUrlError';
+import { getWorkerParameter, log } from '@kot-shrodingera-team/germes-utils';
+import {
+  JsFailError,
+  NewUrlError,
+} from '@kot-shrodingera-team/germes-utils/errors';
+import { clearGermesData } from '../bookmakerApi';
 import openBet from './openBet';
 import openEvent from './openEvent';
-import preCheck from './preCheck';
-
-let couponOpenning = false;
-
-export const isCouponOpenning = (): boolean => couponOpenning;
+import preOpenBet from './preOpenBet';
+import preOpenEvent from './preOpenEvent';
+import setBetAcceptMode from './setBetAcceptMode';
 
 const showStake = async (): Promise<void> => {
+  if (getWorkerParameter('fakeOpenStake')) {
+    log('[fake] Ставка открыта', 'green');
+    worker.JSStop();
+    return;
+  }
   localStorage.setItem('couponOpening', '1');
-  couponOpenning = true;
-
+  clearGermesData();
   try {
-    if (!checkUrl()) {
-      log('Открыта не страница конторы (или зеркала)', 'crimson');
-      window.location.href = new URL(worker.BookmakerMainUrl).href;
-      throw new NewUrlError('Открывает страницу БК');
-    }
-
-    await Promise.race([getElement('#distilCaptchaForm'), authStateReady()]);
-    if (document.querySelector('#distilCaptchaForm')) {
-      worker.Helper.SendInformedMessage('В Sbobet появилась капча');
-      throw new JsFailError('Появилась капча');
-    }
-    worker.Islogin = checkAuth();
-    worker.JSLogined();
-    if (!worker.Islogin) {
-      throw new JsFailError('Нет авторизации');
-    }
-    log('Есть авторизация', 'steelblue');
-
-    const couponCleared = await clearCoupon();
-    if (!couponCleared) {
-      throw new JsFailError('Не удалось очистить купон');
-    }
-    updateBalance();
-    refreshBalance();
-
-    await preCheck();
-
+    log(
+      `Открываем ставку:\n${worker.TeamOne} vs ${worker.TeamTwo}\n${worker.BetName}`,
+      'steelblue'
+    );
+    await preOpenEvent();
     await openEvent();
-
+    await preOpenBet();
     await openBet();
-
+    await setBetAcceptMode();
     log('Ставка успешно открыта', 'green');
-
-    couponOpenning = false;
     localStorage.setItem('couponOpening', '0');
     worker.JSStop();
   } catch (error) {
     if (error instanceof JsFailError) {
       log(error.message, 'red');
-      couponOpenning = false;
       localStorage.setItem('couponOpening', '0');
       worker.JSFail();
-    }
-    if (error instanceof NewUrlError) {
+    } else if (error instanceof NewUrlError) {
       log(error.message, 'orange');
+    } else {
+      // Любая другая ошибка
+      log(
+        'Скрипт вызвал исключение. Если часто повторяется, обратитесь в ТП',
+        'red'
+      );
+      log(error.message, 'red');
+      localStorage.setItem('couponOpening', '0');
+      worker.JSFail();
+      throw error;
     }
   }
 };
