@@ -1,17 +1,30 @@
 import { log } from '@kot-shrodingera-team/germes-utils';
 import { JsFailError } from '@kot-shrodingera-team/germes-utils/errors';
 
+export const findMarketCallback = (
+  marketName: string,
+  marketGroup: string
+): Element => {
+  if (!marketGroup) {
+    return [...document.querySelectorAll('.MarketHd')].find((marketElement) => {
+      return marketElement.textContent.trim() === marketName;
+    });
+  }
+  return [...document.querySelectorAll('.SpecialsSub')].find(
+    (subMarketElement) => {
+      return (
+        subMarketElement.textContent.trim() === `${marketGroup} - ${marketName}`
+      );
+    }
+  );
+};
+
 const findBet = async (): Promise<HTMLElement> => {
   const betData = worker.BetId.split('|');
-  const [marketName, betName] = betData;
+  const [marketName, betName, , marketGroup] = betData;
   const parameter = betData[2] === 'null' ? null : betData[2];
 
-  const findMarketCallback = () => {
-    return [...document.querySelectorAll('.MarketHd')].find((marketElement) => {
-      return marketElement.textContent === marketName;
-    });
-  };
-  const marketHeader = findMarketCallback();
+  const marketHeader = findMarketCallback(marketName, marketGroup);
 
   if (!marketHeader) {
     throw new JsFailError('Маркет не найден');

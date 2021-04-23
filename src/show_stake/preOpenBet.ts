@@ -3,6 +3,7 @@ import { JsFailError } from '@kot-shrodingera-team/germes-utils/errors';
 import checkAuth, { authStateReady } from '../stake_info/checkAuth';
 import { refreshBalance, updateBalance } from '../stake_info/getBalance';
 import clearCoupon from './clearCoupon';
+import { findMarketCallback } from './helpers/findBet';
 
 const preOpenBet = async (): Promise<void> => {
   await Promise.race([getElement('#distilCaptchaForm'), authStateReady()]);
@@ -24,8 +25,12 @@ const preOpenBet = async (): Promise<void> => {
     throw new JsFailError('Не удалось очистить купон');
   }
 
-  const [marketName] = worker.BetId.split('|');
-  log(`Ищем маркет ${marketName}`, 'steelblue');
+  const [marketName, , , marketGroup] = worker.BetId.split('|');
+  if (marketGroup) {
+    log(`Ищем маркет  ${marketGroup} - ${marketName}`, 'steelblue');
+  } else {
+    log(`Ищем маркет ${marketName}`, 'steelblue');
+  }
 
   const liveCourtSelector = '#panel-live-court';
   const tornamentButtonSelector = '.Sel[id^="ms-live-to"] a';
@@ -33,16 +38,11 @@ const preOpenBet = async (): Promise<void> => {
     new URL(worker.EventUrl).pathname
   }"]`;
   const allMarketsButtonSelector = '[id="bu:od:go:mt:4"]';
-  const findMarketCallback = () => {
-    return [...document.querySelectorAll('.MarketHd')].find((marketElement) => {
-      return marketElement.textContent === marketName;
-    });
-  };
 
   await Promise.race([
     getElement(liveCourtSelector, 10000),
     getElement(allMarketsButtonSelector, 10000),
-    awaiter(findMarketCallback, 10000, 50),
+    awaiter(() => findMarketCallback(marketName, marketGroup), 10000, 50),
   ]);
 
   const liveCourt = document.querySelector(liveCourtSelector);
@@ -65,7 +65,7 @@ const preOpenBet = async (): Promise<void> => {
     }
     log('Возвращаемся на страницу события', 'orange');
     eventButton.click();
-    await awaiter(findMarketCallback, 10000, 50);
+    await awaiter(() => findMarketCallback(marketName, marketGroup), 10000, 50);
   } else if (allMarketsButton) {
     if ([...allMarketsButton.classList].includes('0')) {
       log('Не выбраны все маркеты события. Нажимаем кнопку All', 'orange');
@@ -73,7 +73,7 @@ const preOpenBet = async (): Promise<void> => {
     } else {
       log('Уже выбраны все маркеты события', 'steelblue');
     }
-    await awaiter(findMarketCallback, 10000, 50);
+    await awaiter(() => findMarketCallback(marketName, marketGroup), 10000, 50);
   }
 };
 
