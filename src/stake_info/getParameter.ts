@@ -20,7 +20,16 @@ const getParameter = (): number => {
     log('Не найдена информация о ставке', 'crimson');
     return -9999;
   }
-  const marketName = betInfo.childNodes[0].textContent.trim();
+  // const marketName = betInfo.childNodes[0].textContent.trim();
+  const marketName = [...betInfo.childNodes].reduce(
+    (accumulator, currentValue) => {
+      if (currentValue.nodeType === Node.TEXT_NODE) {
+        return `${accumulator} ${currentValue.textContent.trim()}`;
+      }
+      return accumulator;
+    },
+    ''
+  );
   if (!marketName.includes(':')) {
     return -6666;
   }
